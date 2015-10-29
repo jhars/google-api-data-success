@@ -11,25 +11,40 @@ import Alamofire
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var activityWheel: UIActivityIndicatorView!
+    var articles = [Article]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        // sets up variables we need to form our request:
+        
+//        activityWheel.startAnimation()
+
         let url = "http://ajax.googleapis.com/ajax/services/search/news"
         let parameters = ["v": "1.0", "q": "Barack Obama"]
-        // requests the data and handles response
+
         Alamofire.request(.GET, url, parameters: parameters)
             .responseJSON { response in
                 // gets the json
                 if let JSON = response.result.value {
-                    print("JSON: \(JSON)")
+//                    print("JSON: \(JSON)")
+                    
+                    //GET list of Single Articles
+                    let articleDictionaries = JSON.valueForKey("responseData")?.valueForKey("results") as! [NSDictionary]
+                    
+                    //extracts SPECIFIC DATA we want
+                    self.articles = articleDictionaries.map {
+                        Article(title: $0["titleNoFormatting"] as! String, publisher: $0["publisher"] as! String)
+                    }
+                    print(self.articles[1].publisher)
+                    
+                    self.performSegueWithIdentifier("showNewsSegue", sender: nil)
                 }
         }
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let newsTVC = segue.destinationViewController as! NewsTableViewController
+        newsTVC.articles = articles
     }
 
 
